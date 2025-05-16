@@ -675,12 +675,20 @@ public class Parse {
                             entry.key = String.valueOf(added);
                             entry.value = (playerTeam == 2 ? 0 : 128) + teamSlot;
                             playerEntries.add(entry);
-                            // add it to validIndices, add 1 to added
+
                             validIndices[added] = i;
                             added += 1;
                             slot_to_playerslot.put(added, entry.value);
                             steamid_to_playerslot.put(steamid, entry.value);
-                        } else if (playerTeam == 14) {
+
+                            // Emit steamid → playerslot mapping
+                            Entry steamEntry = new Entry(time);
+                            steamEntry.type = "steamid";
+                            steamEntry.key = String.valueOf(entry.value); // slot number
+                            steamEntry.unit = String.valueOf(steamid);    // the actual SteamID64
+                            output(steamEntry);
+                        }
+                        else if (playerTeam == 14) {
                             // 7.33 player waiting to be drafted onto a team
                             hasWaitingForDraftPlayers = true;
                             break;

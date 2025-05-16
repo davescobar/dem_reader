@@ -1,11 +1,9 @@
 FROM maven:3-openjdk-18-slim
 
-RUN apt-get update
+RUN apt-get update && \
+    apt-get install -y bzip2 python3-pip curl && \
+    pip3 install --upgrade flask werkzeug gunicorn
 
-# Install bzip2 for decompression
-RUN apt-get install bzip2
-
-# Install nodejs for log processing
 ARG NODE_VERSION=20.10.0
 ARG TARGETPLATFORM
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then ARCH="arm64"; else ARCH="x64"; fi \
@@ -15,4 +13,12 @@ WORKDIR /usr/src/parser
 ADD . /usr/src/parser
 RUN mvn -q -f /usr/src/parser/pom.xml clean install -U
 
-CMD ["java", "-jar", "/usr/src/parser/target/stats-0.1.0.jar", "5600"]
+# Add wrapper API and entrypoint script
+COPY wrapper_api.py /usr/src/wrapper_api.py
+COPY run_wrapper.sh /usr/src/run_wrapper.sh
+RUN chmod +x /usr/src/run_wrapper.sh
+
+EXPOSE 5600
+EXPOSE 5700
+
+CMD ["/usr/src/run_wrapper.sh"]
